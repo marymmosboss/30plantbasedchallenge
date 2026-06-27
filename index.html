@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>30+ Plant Base Week</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --green-deep: #1e5c3a;
+      --green-mid: #3d9970;
+      --green-soft: #a8d8b0;
+      --green-pale: #eaf7ed;
+      --yellow: #f9c74f;
+      --peach: #f4845f;
+      --text: #1a2e1f;
+      --muted: #6b7c70;
+      --radius: 14px;
+      --radius-sm: 9px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: linear-gradient(160deg, #e8f5ec 0%, #fefae0 100%);
+      min-height: 100vh;
+      color: var(--text);
+    }
+
+    /* HEADER */
+    .header {
+      background: linear-gradient(135deg, var(--green-deep) 0%, var(--green-mid) 100%);
+      color: white;
+      padding: 20px 16px 16px;
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      box-shadow: 0 4px 20px rgba(30,92,58,.3);
+    }
+    .header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .header h1 { font-size: 18px; font-weight: 800; letter-spacing: -.3px; }
+    .week-pill {
+      font-size: 11px; font-weight: 600;
+      background: rgba(255,255,255,.18);
+      border-radius: 100px; padding: 4px 10px; white-space: nowrap;
+    }
+    .progress-wrap {
+      background: rgba(255,255,255,.2);
+      border-radius: 100px; height: 8px; overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%; border-radius: 100px;
+      background: var(--yellow);
+      transition: width .4s cubic-bezier(.4,0,.2,1); width: 0%;
+    }
+    .progress-meta {
+      display: flex; justify-content: space-between;
+      font-size: 12px; font-weight: 600; margin-top: 6px; opacity: .9;
+    }
+
+    /* MAIN */
+    .main { padding: 16px; max-width: 500px; margin: 0 auto; padding-bottom: 32px; }
+    .tip {
+      font-size: 12px; color: var(--muted);
+      text-align: center; margin-bottom: 18px; line-height: 1.5;
+    }
+
+    /* CATEGORY */
+    .cat-block {
+      background: white; border-radius: var(--radius);
+      padding: 14px 12px; margin-bottom: 12px;
+      box-shadow: 0 2px 10px rgba(0,0,0,.06);
+    }
+    .cat-header {
+      display: flex; align-items: center; gap: 7px; margin-bottom: 12px;
+    }
+    .cat-emoji { font-size: 22px; }
+    .cat-name { font-size: 15px; font-weight: 700; color: var(--green-deep); flex: 1; }
+    .cat-badge {
+      font-size: 12px; font-weight: 700;
+      background: var(--green-pale); color: var(--green-mid);
+      border-radius: 100px; padding: 3px 10px;
+    }
+    .cat-badge.full { background: var(--green-mid); color: white; }
+    .cat-badge { cursor: pointer; }
+    .cat-badge:hover { opacity: .85; }
+    .eaten-panel {
+      display: none;
+      font-size: 12px; color: var(--muted);
+      background: var(--green-pale);
+      border-radius: 8px; padding: 8px 10px;
+      margin-bottom: 10px; line-height: 1.6;
+    }
+    .eaten-panel.visible { display: block; }
+    .eaten-label { font-weight: 700; color: var(--green-deep); margin-bottom: 2px; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; }
+
+    /* GRID */
+    .plants-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; }
+
+    /* PLANT CARD */
+    .pcard {
+      border: 2px solid #e8ede9; border-radius: var(--radius-sm);
+      padding: 9px 10px; display: flex; align-items: center; gap: 7px;
+      cursor: pointer; transition: all .18s ease; background: white;
+      -webkit-tap-highlight-color: transparent; user-select: none;
+    }
+    .pcard:active { transform: scale(.96); }
+    .pcard.excluded { opacity: .32; background: #f5f5f5; border-color: transparent; }
+    .pcard.excluded .pname { text-decoration: line-through; }
+    .pcheck {
+      width: 22px; height: 22px; border-radius: 50%;
+      border: 2px solid #c4cfc6; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; font-weight: 900; color: transparent; transition: all .18s;
+    }
+    .pname { font-size: 13px; font-weight: 500; flex: 1; line-height: 1.3; }
+    .pexclude {
+      font-size: 14px; color: #c4cfca; opacity: 0; flex-shrink: 0;
+      padding: 2px; line-height: 1; background: none; border: none;
+      cursor: pointer; transition: opacity .2s, color .2s;
+    }
+    .pcard:hover .pexclude,
+    .pcard:focus-within .pexclude { opacity: 1; }
+    .pcard.excluded .pexclude { opacity: 1; color: var(--peach); }
+    .cat-done {
+      text-align: center; font-size: 14px; font-weight: 600;
+      color: var(--green-mid); padding: 10px 0 4px;
+    }
+
+    /* SUMMARY */
+    .summary {
+      background: linear-gradient(135deg, var(--green-deep) 0%, #2a7a4f 100%);
+      border-radius: 20px; padding: 18px 18px 16px;
+      color: white; box-shadow: 0 6px 24px rgba(30,92,58,.25);
+      margin-bottom: 4px;
+    }
+    .sum-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .sum-box { background: rgba(255,255,255,.12); border-radius: 12px; padding: 14px 10px; text-align: center; }
+    .sum-num { font-size: 34px; font-weight: 900; line-height: 1; }
+    .sum-sub { font-size: 11px; opacity: .75; margin-top: 4px; }
+    .reward {
+      background: rgba(249,199,79,.15);
+      border: 1.5px solid rgba(249,199,79,.4);
+      border-radius: 12px; padding: 14px 12px; text-align: center;
+    }
+    .reward-emoji { font-size: 30px; display: block; margin-bottom: 6px; }
+    .reward-text { font-size: 13px; line-height: 1.55; opacity: .95; }
+    .btn-reset {
+      display: block; width: 100%; margin-top: 14px; padding: 12px;
+      background: rgba(255,255,255,.1); color: rgba(255,255,255,.85);
+      border: 1.5px solid rgba(255,255,255,.25); border-radius: 10px;
+      font-size: 13px; font-weight: 600; cursor: pointer; transition: background .2s;
+    }
+    .btn-reset:hover { background: rgba(255,255,255,.18); }
+
+    /* CONFIRM DIALOG */
+    .confirm-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.45); z-index: 999;
+      align-items: center; justify-content: center; padding: 24px;
+    }
+    .confirm-overlay.visible { display: flex; }
+    .confirm-box {
+      background: white; border-radius: 16px; padding: 24px 20px;
+      max-width: 320px; width: 100%; text-align: center; color: var(--text);
+    }
+    .confirm-box p { font-size: 15px; font-weight: 600; line-height: 1.5; margin-bottom: 18px; }
+    .confirm-actions { display: flex; gap: 10px; }
+    .confirm-actions button {
+      flex: 1; padding: 11px; border-radius: 10px;
+      font-size: 14px; font-weight: 700; cursor: pointer; border: none;
+    }
+    .btn-cancel { background: #f0f0f0; color: var(--muted); }
+    .btn-confirm { background: var(--green-mid); color: white; }
+
+    .leaf-decor {
+      text-align: center; font-size: 22px;
+      letter-spacing: 6px; margin: 18px 0 10px; opacity: .5;
+    }
+  </style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <h1>&#127807; 30+ plant base week</h1>
+    <span class="week-pill" id="weekPill">...</span>
+  </div>
+  <div class="progress-wrap">
+    <div class="progress-fill" id="progFill"></div>
+  </div>
+  <div class="progress-meta">
+    <span id="progCount">0 / 30</span>
+    <span id="progPct">0%</span>
+  </div>
+</div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-box">
+    <p>Почати новий тиждень?<br>Відмітки скинуться, виключені рослини збережуться.</p>
+    <div class="confirm-actions">
+      <button class="btn-cancel" id="btnCancel">Скасувати</button>
+      <button class="btn-confirm" id="btnConfirm">Так, починаємо!</button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="summary">
+    <div class="sum-stats">
+      <div class="sum-box">
+        <div class="sum-num" id="sumCount">0</div>
+        <div class="sum-sub">з 30 рослин</div>
+      </div>
+      <div class="sum-box">
+        <div class="sum-num" id="sumPct">0%</div>
+        <div class="sum-sub">від цілі 30</div>
+      </div>
+    </div>
+    <div class="reward" id="rewardBox">
+      <span class="reward-emoji">&#127807;</span>
+      <span class="reward-text">Почни відмічати рослини — побачиш свій прогрес!</span>
+    </div>
+    <button class="btn-reset" id="btnReset">&#128260; Новий тиждень (скинути відмітки)</button>
+  </div>
+  <div class="leaf-decor">&#127811; &#127800; &#127811;</div>
+  <p class="tip">&#9989; Натисни &#8212; відмітити з&#39;їдене &nbsp;&middot;&nbsp; &#10005; &#8212; виключити зі списку</p>
+  <div id="catsContainer"></div>
+</div>
+
+<script>
+var CATS = [
+  { emoji: "🥦", name: "Овочі та зелень", plants: [
+    "Огірок", "Помідор черрі", "Цукіні", "Редиска", "Листовий салат",
+    "Шпинат", "Руккола", "Буряк молодий", "Морква", "Горошок зелений",
+    "Помідор", "Жовті черрі", "Спаржа", "Броколі", "Молода капуста", "Капуста фіолетова", "Молода картопля",
+    "Зелена цибуля", "Молодий часник", "Печериці", "Молода кукурудза"
+  ]},
+  { emoji: "🍓", name: "Фрукти та ягоди", plants: [
+    "Полуниця", "Черешня", "Чорна смородина", "Малина", "Агрус", "Чорниця",
+    "Абрикоси", "Персики", "Нектарини", "Суниця", "Фініки", "Авокадо",
+    "Банан", "Апельсин", "Яблуко", "Ківі", "Лохина", "Виноград"
+  ]},
+  { emoji: "🌾", name: "Цільнозернові", plants: [
+    "Вівсянка", "Гречка", "Бурий рис", "Кіноа", "Булгур"
+  ]},
+  { emoji: "🫘", name: "Бобові", plants: [
+    "Сочевиця", "Нут", "Стручкова квасоля"
+  ]},
+  { emoji: "🥜", name: "Горіхи та насіння", plants: [
+    "Насіння соняшника", "Гарбузове насіння", "Волоські горіхи",
+    "Мигдаль", "Льняне насіння", "Насіння чіа"
+  ]},
+  { emoji: "🌿", name: "Зелень та спеції", plants: [
+    "Кріп", "Петрушка", "Базилік", "М’ята", "Куркума", "Імбир"
+  ]}
+];
+
+var GOAL = 30;
+var KEY = "plants30_v3";
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(KEY);
+    if (raw) {
+      var parsed = JSON.parse(raw);
+      return {
+        checked: parsed.checked || {},
+        excluded: parsed.excluded || {}
+      };
+    }
+  } catch(e) {}
+  return { checked: {}, excluded: {} };
+}
+
+function saveState(s) {
+  try { localStorage.setItem(KEY, JSON.stringify(s)); } catch(e) {}
+}
+
+var S = loadState();
+
+function weekLabel() {
+  var now = new Date();
+  var day = now.getDay();
+  var mon = new Date(now);
+  mon.setDate(now.getDate() - (day === 0 ? 6 : day - 1));
+  var sun = new Date(mon);
+  sun.setDate(mon.getDate() + 6);
+  var months = ["січ","лют","бер","квіт","трав","черв","лип","серп","вер","жовт","лист","груд"];
+  return mon.getDate() + " " + months[mon.getMonth()] + " – " + sun.getDate() + " " + months[sun.getMonth()];
+}
+
+var REWARDS = [
+  [0,   "🌱", "Починай відмічати рослини — мікробіом чекає!"],
+  [10,  "🌿", "Гарний старт! Різноманіття вже в дорозі."],
+  [25,  "🌻", "Чверть шляху! Твій кишківник вже помічає зміни."],
+  [50,  "🌸", "Половина! Мікробіом радіє різноманіттю."],
+  [75,  "🏅", "Майже там! Ти справжня чемпіонка різноманіття."],
+  [90,  "🏆", "Вражаюче! Ще трошки — і повна перемога."],
+  [100, "🎉", "Неймовірно! Ціль досягнута. Мікробіом на 7-му небі!"]
+];
+
+function getReward(pct) {
+  var r = REWARDS[0];
+  for (var i = 0; i < REWARDS.length; i++) {
+    if (pct >= REWARDS[i][0]) r = REWARDS[i];
+  }
+  return { emoji: r[1], text: r[2] };
+}
+
+function countChecked() {
+  var n = 0;
+  for (var ci = 0; ci < CATS.length; ci++) {
+    for (var pi = 0; pi < CATS[ci].plants.length; pi++) {
+      var id = ci + "-" + pi;
+      if (S.checked[id] && !S.excluded[id]) n++;
+    }
+  }
+  return n;
+}
+
+function render() {
+  var checked = countChecked();
+  var pct = Math.min(100, Math.round(checked / GOAL * 100));
+
+  document.getElementById("weekPill").textContent = weekLabel();
+  document.getElementById("progFill").style.width = pct + "%";
+  document.getElementById("progCount").textContent = checked + " / " + GOAL;
+  document.getElementById("progPct").textContent = pct + "%";
+  document.getElementById("sumCount").textContent = checked;
+  document.getElementById("sumPct").textContent = pct + "%";
+
+  var rw = getReward(pct);
+  document.getElementById("rewardBox").innerHTML =
+    '<span class="reward-emoji">' + rw.emoji + '</span>' +
+    '<span class="reward-text">' + rw.text + '</span>';
+
+  var html = "";
+  for (var ci = 0; ci < CATS.length; ci++) {
+    var cat = CATS[ci];
+    var catChecked = 0;
+    var catActive = 0;
+    for (var pi = 0; pi < cat.plants.length; pi++) {
+      var id = ci + "-" + pi;
+      if (!S.excluded[id]) {
+        catActive++;
+        if (S.checked[id]) catChecked++;
+      }
+    }
+    var full = catActive > 0 && catChecked === catActive;
+
+    var cards = "";
+    for (var pi2 = 0; pi2 < cat.plants.length; pi2++) {
+      var id2 = ci + "-" + pi2;
+      if (S.checked[id2]) continue;
+      var exc = !!S.excluded[id2];
+      cards += '<div class="pcard' + (exc ? " excluded" : "") + '" data-id="' + id2 + '" data-action="check">' +
+        '<div class="pcheck"></div>' +
+        '<span class="pname">' + cat.plants[pi2] + '</span>' +
+        '<button class="pexclude" data-id="' + id2 + '" data-action="exclude">' + (exc ? "↩" : "✕") + '</button>' +
+        '</div>';
+    }
+
+    var gridContent = full
+      ? '<div class="cat-done">🎉 Всі з\'їдено!</div>'
+      : '<div class="plants-grid">' + cards + '</div>';
+
+    // build eaten list for panel
+    var eatenNames = [];
+    for (var pj = 0; pj < cat.plants.length; pj++) {
+      if (S.checked[ci + "-" + pj] && !S.excluded[ci + "-" + pj]) {
+        eatenNames.push(cat.plants[pj]);
+      }
+    }
+    var panelHTML = "";
+    if (eatenNames.length > 0) {
+      panelHTML = '<div class="eaten-panel" id="ep-' + ci + '">' +
+        '<div class="eaten-label">З\'їдено</div>' +
+        eatenNames.join(", ") +
+        '</div>';
+    }
+
+    html += '<div class="cat-block">' +
+      '<div class="cat-header">' +
+      '<span class="cat-emoji">' + cat.emoji + '</span>' +
+      '<span class="cat-name">' + cat.name + '</span>' +
+      '<span class="cat-badge' + (full ? " full" : "") + '" data-action="toggle-eaten" data-ci="' + ci + '">' + catChecked + "/" + catActive + '</span>' +
+      '</div>' +
+      panelHTML +
+      gridContent +
+      '</div>';
+  }
+
+  document.getElementById("catsContainer").innerHTML = html;
+}
+
+document.getElementById("catsContainer").addEventListener("click", function(e) {
+  var btn = e.target;
+  while (btn && !btn.dataset.action) btn = btn.parentElement;
+  if (!btn) return;
+
+  var id = btn.dataset.id;
+  var action = btn.dataset.action;
+
+  if (action === "toggle-eaten") {
+    e.stopPropagation();
+    var ci = btn.dataset.ci;
+    var panel = document.getElementById("ep-" + ci);
+    if (panel) panel.classList.toggle("visible");
+    return;
+  }
+
+  if (action === "exclude") {
+    e.stopPropagation();
+    S.excluded[id] = !S.excluded[id];
+    if (S.excluded[id]) delete S.checked[id];
+  } else if (action === "check") {
+    if (S.excluded[id]) return;
+    S.checked[id] = !S.checked[id];
+  }
+  saveState(S);
+  render();
+});
+
+document.getElementById("btnReset").addEventListener("click", function() {
+  document.getElementById("confirmOverlay").classList.add("visible");
+});
+document.getElementById("btnCancel").addEventListener("click", function() {
+  document.getElementById("confirmOverlay").classList.remove("visible");
+});
+document.getElementById("btnConfirm").addEventListener("click", function() {
+  S.checked = {};
+  saveState(S);
+  document.getElementById("confirmOverlay").classList.remove("visible");
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
